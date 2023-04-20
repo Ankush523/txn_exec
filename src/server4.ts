@@ -1,8 +1,11 @@
 import { ethers } from "ethers";
 import axios from "axios";
 import { Dcyfr } from "bytekode-eth-decoder";
-// const provider = new ethers.providers.WebSocketProvider('wss://polygon-mainnet.g.alchemy.com/v2/s5BwByPukIVosEOZEfXU68neTN4WsDOy');
+import uniswapabi from './abis/abi.json'
+import sushiswapabi from './abis/abi2.json'
+import aaveabi from './abis/AAVEabi.json'
 
+// const provider = new ethers.providers.WebSocketProvider('wss://polygon-mainnet.g.alchemy.com/v2/s5BwByPukIVosEOZEfXU68neTN4WsDOy');
 // const address = "0x816fe884C2D2137C4F210E6a1d925583fa4A917d";
 // const providerUrl = "https://polygon-mainnet.g.alchemy.com/v2/s5BwByPukIVosEOZEfXU68neTN4WsDOy";
 // const polygon_provider = new ethers.providers.JsonRpcProvider(providerUrl);
@@ -35,9 +38,9 @@ async function getConfirmedTransactionDetails(txHash : any) {
           console.log('------------------------------------------------------------------')
           console.log("Contract address:", tx.to);
           console.log('------------------------------------------------------------------')
-          const contractABI = await getContractABI(tx.to);
+          const contractABI = await getContractABI();
           if (contractABI) {
-            console.log("Contract ABI:", contractABI);
+            console.log("Func :", contractABI);
             console.log('------------------------------------------------------------------')
           } else {
             console.log("Unable to fetch contract ABI.");
@@ -60,24 +63,22 @@ provider.on('block', async (blockNumber) => {
   }
 });
 
-async function getContractABI(contractAddress: string): Promise<any> {
+async function getContractABI(): Promise<any> {
     try {
-      const response = await axios.get(
-          `https://api-testnet.polygonscan.com/api?module=contract&action=getabi&address=${contractAddress}&apikey=${polygonscanApiKey}`
-      );
-      if (response.data.status === "1") {
-        const dcyfr = new Dcyfr(response.data.result);
-        const data = txndata;
-        const decodedResponse = dcyfr.getTxInfoFromData({ data })
-        console.log(decodedResponse)
-        console.log('------------------------------------------------------------------')
-        const func = decodedResponse?.func
-        console.log("Executed Function : ",func)
-        console.log('------------------------------------------------------------------')
-        return JSON.parse(response.data.result);
-      } else {
-        console.error("Error while fetching contract ABI:", response.data.message);
-      }
+        if((txTo).toLowerCase() === ('0x0b913A76beFF3887d35073b8e5530755D60F78C7').toLowerCase()){
+            const dcyfr = new Dcyfr(aaveabi);
+            const data = txndata;
+            const decodedResponse = dcyfr.getTxInfoFromData({ data })
+            const func = decodedResponse?.func
+            return func
+        }
+        // else if((txTo).toLowerCase() === ('0x4c60051384bd2d3c01bfc845cf5f4b44bcbe9de5').toLowerCase()){
+        //     const dcyfr = new Dcyfr(uniswapabi);
+        //     const data = txndata;
+        //     const decodedResponse = dcyfr.getTxInfoFromData({ data })
+        //     const func = decodedResponse?.func
+        //     return func
+        // }
     } catch (error) {
       console.error("Error while fetching contract ABI:", error);
     }
